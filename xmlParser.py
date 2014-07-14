@@ -13,7 +13,7 @@
 # <subject ascatype="traditional">Chemistry, Analytical -> SC
 
 # output is in dictionary format and will be saved in json:
-# {uid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]}
+# {uid: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
 # 0: py
 # 1: ci
 # 2: so
@@ -43,8 +43,9 @@ def main(inputNames, outputName):
                 ti = rec.find('title', {'type': 'item'}).text.strip()
                 bi = rec.find('bib_id').text.strip()
                 aus = []
-                for au in rec.findAll('names')[0].findAll('full_name'):
-                    aus.append(au.text.strip())
+                for au in rec.findAll('names')[0].findAll('wos_standard'):
+                    au = au.text.strip()
+                    aus.append(au)
                 cos = []
                 for co in rec.find('addresses').findAll('country'):
                     cos.append(co.text.strip())
@@ -59,7 +60,20 @@ def main(inputNames, outputName):
                 if rec.find('subjects'):
                     for sc in rec.find('subjects').findAll('subject'):
                         scs.append(sc.text.strip())
+
                 records[uid] = [py, ci, so, ti, bi, aus, cos, dts, ab, scs]
+
+                # filter out astronomy ariticles from total records
+                subjects = rec.find('subjects')
+                if subjects:
+                    subjs = subjects.findAll('subject')
+                traidSubjs = [subj.text.strip() for subj in subjs if subj['ascatype'] == 'traditional']
+                if any('astronomy' in sub.lower() for sub in traidSubjs):
+                    # print traidSubjs
+                    records.pop(uid)
+                else:
+                    records[uid][5] = aus
+
 
     with open(outputName + '.json', 'wb') as output:
         json.dump(records, output, indent = 2)
@@ -70,9 +84,8 @@ if __name__ == '__main__':
     from bs4 import BeautifulSoup
 
     fileNames = glob.glob('*.xml')
-    if len(fileNames) % 10 != 0:
-        for i in range(len(fileNames) / 10 + 1):
-            print i
-            inputNames = fileNames[i*10:i*10+10]
-            outputName = 'Record' + str(i)
-            main(inputNames, outputName)
+    for i in range(len(fileNames) / 10 + 1):
+        print i
+        inputNames = fileNames[i*10:i*10+10]
+        outputName = 'Record' + str(i)
+        main(inputNames, outputName)

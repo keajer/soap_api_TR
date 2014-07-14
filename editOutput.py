@@ -19,20 +19,21 @@
 import json, glob
 
 # formalize the name to be "last name, first initials"
-def formalName(string):
-    intake = string.split(', ')
-    if len(intake) == 1:
-        name = intake[0]
-    else:
-        last = intake[0] + ', '
-        first = ''.join([f for f in intake[1] if f.isupper()])
-        name = last + first
-    return name
+# def formalName(string):
+#     intake = string.split(', ')
+#     if len(intake) == 1:
+#         name = intake[0]
+#     else:
+#         last = intake[0] + ', '
+#         first = ''.join([f for f in intake[1] if f.isupper()])
+#         name = last + first
+#     return name
+fileName = 'all_recordes1.json'
+f = open(fileName, 'rU')
+records = json.loads(f.read())
+f.close()
 
-def writeOut(fileName, output):
-    f = open(fileName, 'rU')
-    records = json.loads(f.read())
-    f.close()
+with open('new_output1.txt', 'wb') as output:
     for key, val in records.iteritems():
         output.write('ID ' + key.split(':')[1] + '\n')
         output.write('CI ' + val[1] + '\n')
@@ -40,9 +41,9 @@ def writeOut(fileName, output):
         output.write('TI ' + val[3] + '\n')
         output.write('BI ' + val[4] + '\n')
         output.write('PY ' + val[0] + '\n')
-        output.write('AU ' + formalName(val[5][0]) + '\n')
+        output.write('AU ' + val[5][0] + '\n')
         for au in val[5][1:]:
-            output.write('   ' + formalName(au) + '\n')
+            output.write('   ' + au + '\n')
         for co in val[6]:
             output.write('CO ' + co + '\n')
         for ref in val[10]:
@@ -50,25 +51,4 @@ def writeOut(fileName, output):
         for sc in val[9]:
             output.write('CA ' + sc + '\n')
         output.write('\n')
-
-def combine(fileName, recordDict):
-    f = open(fileName, 'rU')
-    records = json.loads(f.read())
-    f.close()
-    for key, val in records.iteritems():
-        recordDict[key] = val
-    return recordDict
-
-if __name__ == '__main__':    
-    fileNames = glob.glob('new_*.json')
-    recordDict = dict()
-    for name in fileNames:
-        print name
-        with open('output.txt', 'ab+') as output1:
-            writeOut(name, output1)
-        output1.close()
-        combine(name, recordDict)
-    with open('all_records.json', 'wb') as output2:
-        json.dump(recordDict, output2, indent = 2)
-    output2.close()
-
+output.close()
